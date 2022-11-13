@@ -1,19 +1,27 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { publicRoutes } from '~/routes';
+import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom';
+import List from './pages/employees';
+
 
 function App() {
   return (
-    <Router>
-      <div className='App'>
+    <div style={{ padding: 48 }}>
+      <BrowserRouter>
         <Routes>
-          {publicRoutes.map((route, index) => {
-            const Page = route.component;
-            return <Route key={index} path={route.path} element={<Page />} />
-          })}
+          <Route path='/employees' element={<List />} />
+
+          {/* NO MATCH ROUTE */}
+          <Route
+            path='*'
+            element={
+              <main style={{ padding: '1rem' }}>
+                <p>404 Page not found</p>
+              </main>
+            }
+          />
         </Routes>
-      </div>
-    </Router>
+      </BrowserRouter>
+    </div>
   );
 }
 
