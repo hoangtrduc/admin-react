@@ -1,12 +1,14 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { axiosClient } from '../../libraries/axiosClient';
-import { Table, Button, Popconfirm, Form, Input, message, Space, Modal } from 'antd';
+import { Table, Button, Popconfirm, Form, Input, message, Space, Modal, InputNumber, Select } from 'antd';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import moment from 'moment';
+import numeral from 'numeral';
 
-export default function Employees() {
-    const [employees, setEmployees] = useState([]);
+export default function Products() {
+    const [categories, setCategories] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
+    const [products, setProducts] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [refresh, setRefresh] = useState(0);
     const [editFormVisible, setEditFormVisible] = useState(false);
@@ -15,41 +17,54 @@ export default function Employees() {
 
     const columns = [
         {
-            title: 'Họ và tên',
-            dataIndex: 'fullName',
-            key: 'fullName',
-            render: (text) => {
-                return <strong style={{ color: "blue" }}>{text}</strong>
+            title: 'Danh mục sản phẩm',
+            dataIndex: 'category',
+            key: 'category',
+            render: (text, record) => {
+                return <strong >{record?.category?.name}</strong>
             },
         },
         {
-            title: 'Địa chỉ',
-            dataIndex: 'address',
-            key: 'address',
-            with: '1%',
+            title: 'Tên sản phẩm',
+            dataIndex: 'name',
+            key: 'name',
             render: (text) => {
-                return <span>{text}</span>;
+                return <strong >{text}</strong>
             },
         },
         {
-            title: 'Thư điện tử',
-            dataIndex: 'email',
-            key: 'email',
-            with: '1%',
-        },
-        {
-            title: 'điện thoại',
-            dataIndex: 'phoneNumber',
-            key: 'phoneNumber',
-            with: '1%',
-        },
-        {
-            title: 'ngày sinh',
-            dataIndex: 'birthday',
-            key: 'birthday',
+            title: 'Giá',
+            dataIndex: 'price',
+            key: 'price',
             with: '1%',
             render: (text) => {
-                return <span>{moment(text).format('DD/MM/yyyy')}</span>;
+                return <span>{numeral(text).format('0,0$')}</span>;
+            },
+        },
+        {
+            title: 'Giảm giá',
+            dataIndex: 'discount',
+            key: 'discount',
+            with: '1%',
+            render: (text) => {
+                return <span>{numeral(text).format('0,0')}%</span>;
+            },
+        },
+        {
+            title: 'Tồn kho',
+            dataIndex: 'stock',
+            key: 'stock',
+            with: '1%',
+            render: (text) => {
+                return <span>{numeral(text).format('0,0.0')}</span>;
+            },
+        },
+        {
+            title: 'Nhà cung cấp',
+            dataIndex: 'supplier',
+            key: 'supplier',
+            render: (text, record) => {
+                return <strong >{record?.supplier?.name}</strong>
             },
         },
         {
@@ -65,7 +80,7 @@ export default function Employees() {
                                 // Delete
                                 const id = record._id;
                                 axiosClient
-                                    .delete('/employees/' + id)
+                                    .delete('/products/' + id)
                                     .then(response => {
                                         message.success('xóa thành công.')
                                         setRefresh((f) => f + 1);
@@ -93,19 +108,30 @@ export default function Employees() {
 
     ];
 
+    useEffect(() => {
+        axiosClient.get('/categories').then(response => {
+            setCategories(response.data)
+        })
+    }, [])
+
+    useEffect(() => {
+        axiosClient.get('/suppliers').then(response => {
+            setSuppliers(response.data)
+        })
+    }, [])
 
 
 
 
 
     useEffect(() => {
-        axiosClient.get('/employees').then(response => {
-            setEmployees(response.data)
+        axiosClient.get('/products').then(response => {
+            setProducts(response.data)
         })
     }, [refresh])
 
     const onFinish = (values) => {
-        axiosClient.post('/employees', values).then((response) => {
+        axiosClient.post('/products', values).then((response) => {
             message.success('Thêm mới thành công');
             createForm.resetFields();
             setRefresh((f) => f + 1);
@@ -122,7 +148,7 @@ export default function Employees() {
 
     const onUpdateFinish = (values) => {
         axiosClient
-            .patch('/employees/' + selectedRecord._id, values)
+            .patch('/products/' + selectedRecord._id, values)
             .then((response) => {
                 message.success('Cập nhật mới thành công');
                 updateForm.resetFields();
@@ -139,6 +165,7 @@ export default function Employees() {
 
     const [createForm] = Form.useForm();
     const [updateForm] = Form.useForm();
+
 
 
     return (
@@ -159,80 +186,90 @@ export default function Employees() {
                 autoComplete="on"
             >
                 <Form.Item
-                    label="Họ"
-                    name="firstName"
+                    label="Danh mục sản phẩm"
+                    name="categoryId"
                     rules={[
                         {
                             required: true,
-                            message: 'Chưa nhập Họ!',
+                            message: 'Chưa nhập tên danh mục sản phẩm!',
                         },
                     ]}
                     hasFeedback
                 >
-                    <Input />
+                    <Select style={{ minWidth: '40%' }} options={categories && categories.map((c) => {
+                        return {
+                            value: c._id,
+                            label: c.name,
+                        }
+                    })} />
                 </Form.Item>
                 <Form.Item
-                    label="Tên"
-                    name="lastName"
+                    label="Tên sản phẩm"
+                    name="name"
                     rules={[
                         {
                             required: true,
-                            message: 'Chưa nhập Tên!',
+                            message: 'Chưa nhập tên sản phẩm!',
                         },
                     ]}
                     hasFeedback
                 >
-                    <Input />
+                    <Input style={{ minWidth: 400 }} />
                 </Form.Item>
                 <Form.Item
-                    label="Số điện thoại"
-                    name="phoneNumber"
+                    label="Giá bán"
+                    name="price"
                     rules={[
                         {
                             required: true,
-                            message: 'Chưa nhập số điện thoại!',
+                            message: 'Chưa nhập giá bán!',
                         },
                     ]}
                     hasFeedback
                 >
-                    <Input />
+                    <InputNumber style={{ minWidth: 300 }} formatter={(value) => {
+                        return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    }} />
                 </Form.Item>
                 <Form.Item
-                    label="Thư điện tử"
-                    name="email"
+                    label="Giảm giá"
+                    name="discount"
+                >
+                    <InputNumber style={{ minWidth: 300 }} formatter={(value) => `${value}%`} parser={(value) => value.replace('%', '')} />
+                </Form.Item>
+                <Form.Item
+                    label="Tồn kho"
+                    name="stock"
                     rules={[
                         {
                             required: true,
-                            message: 'Chưa nhập email!',
-                        },
-                        {
-                            type: 'email',
-                            message: 'email không hợp lệ',
+                            message: 'Chưa nhập giá bán!',
                         },
                     ]}
                     hasFeedback
                 >
-                    <Input />
+                    <InputNumber style={{ minWidth: 300 }} formatter={(value) => {
+                        return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    }} />
                 </Form.Item>
+
                 <Form.Item
-                    label="Địa chỉ"
-                    name="address"
+                    label="Nhà cung cấp"
+                    name="supplierId"
                     rules={[
                         {
                             required: true,
-                            message: 'Chưa nhập địa chỉ!',
+                            message: 'Chưa nhập tên danh mục sản phẩm!',
                         },
                     ]}
                     hasFeedback
                 >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    label="Ngày sinh"
-                    name="birthday"
-                    hasFeedback
-                >
-                    <Input />
+                    <Select options={suppliers && suppliers.map((c) => {
+                        return {
+                            value: c._id,
+                            label: c.name,
+                        }
+                    })} style={{ minWidth: 400 }} />
                 </Form.Item>
 
                 <Form.Item
@@ -247,7 +284,8 @@ export default function Employees() {
                 </Form.Item>
             </Form>
 
-            <Table dataSource={employees} columns={columns}></Table>
+            <Table dataSource={products} columns={columns}></Table>
+
             {/* UPDATE-FORM */}
             <Modal centered open={editFormVisible} title="Cập nhật thông tin" onOk={() => { updateForm.submit(); }} onCancel={() => { setEditFormVisible(false) }} cancelText='Đóng' okText='Lưu thông tin'>
                 <Form form={updateForm} name="create-form"
@@ -265,12 +303,30 @@ export default function Employees() {
                     autoComplete="on"
                 >
                     <Form.Item
-                        label="Họ"
-                        name="firstName"
+                        label="Danh mục sản phẩm"
+                        name="categoryId"
                         rules={[
                             {
                                 required: true,
-                                message: 'Chưa nhập Họ!',
+                                message: 'Chưa nhập tên danh mục sản phẩm!',
+                            },
+                        ]}
+                        hasFeedback
+                    >
+                        <Select options={categories && categories.map((c) => {
+                            return {
+                                value: c._id,
+                                label: c.name,
+                            }
+                        })} />
+                    </Form.Item>
+                    <Form.Item
+                        label="Tên sản phẩm"
+                        name="name"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Chưa nhập tên sản phẩm!',
                             },
                         ]}
                         hasFeedback
@@ -278,75 +334,59 @@ export default function Employees() {
                         <Input />
                     </Form.Item>
                     <Form.Item
-                        label="Tên"
-                        name="lastName"
+                        label="Giá bán"
+                        name="price"
                         rules={[
                             {
                                 required: true,
-                                message: 'Chưa nhập Tên!',
+                                message: 'Chưa nhập giá bán!',
                             },
                         ]}
                         hasFeedback
                     >
-                        <Input />
+                        <InputNumber style={{ minWidth: 150 }} formatter={(value) => {
+                            return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                        }} />
                     </Form.Item>
                     <Form.Item
-                        label="Số điện thoại"
-                        name="phoneNumber"
+                        label="Giảm giá"
+                        name="discount"
+                    >
+                        <InputNumber style={{ minWidth: 150 }} formatter={(value) => `${value}%`} />
+                    </Form.Item>
+                    <Form.Item
+                        label="Tồn kho"
+                        name="stock"
                         rules={[
                             {
                                 required: true,
-                                message: 'Chưa nhập số điện thoại!',
+                                message: 'Chưa nhập giá bán!',
                             },
                         ]}
                         hasFeedback
                     >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        label="Thư điện tử"
-                        name="email"
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Chưa nhập email!',
-                            },
-                            {
-                                type: 'email',
-                                message: 'email không hợp lệ',
-                            },
-                        ]}
-                        hasFeedback
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        label="Địa chỉ"
-                        name="address"
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Chưa nhập địa chỉ!',
-                            },
-                        ]}
-                        hasFeedback
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        label="Ngày sinh"
-                        name="birthday"
-                        hasFeedback
-                    >
-                        <Input />
+                        <InputNumber style={{ minWidth: 150 }} formatter={(value) => {
+                            return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                        }} />
                     </Form.Item>
 
                     <Form.Item
-                        wrapperCol={{
-                            offset: 8,
-                            span: 16,
-                        }}
+                        label="Nhà cung cấp"
+                        name="supplierId"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Chưa nhập tên danh mục sản phẩm!',
+                            },
+                        ]}
+                        hasFeedback
                     >
+                        <Select options={suppliers && suppliers.map((c) => {
+                            return {
+                                value: c._id,
+                                label: c.name,
+                            }
+                        })} />
                     </Form.Item>
                 </Form>
             </Modal>
