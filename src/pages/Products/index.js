@@ -176,7 +176,7 @@ export default function Products() {
                     span: 8,
                 }}
                 wrapperCol={{
-                    span: 16,
+                    span: 8,
                 }}
                 initialValues={{
                     remember: true,
@@ -196,7 +196,7 @@ export default function Products() {
                     ]}
                     hasFeedback
                 >
-                    <Select style={{ minWidth: '40%' }} options={categories && categories.map((c) => {
+                    <Select options={categories && categories.map((c) => {
                         return {
                             value: c._id,
                             label: c.name,

@@ -1,0 +1,7 @@
+.form_login {
+  top: -50%;
+  transform: translateY(50%);
+}
+.text {
+  text-align: center;
+}
